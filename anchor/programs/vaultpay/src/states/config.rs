@@ -11,5 +11,6 @@ pub struct Config {
     pub supported_token: Pubkey,
     pub yield_source: Pubkey,
     pub treasury_wallet: Pubkey,
-    pub locked: bool
+    pub locked: bool,
+    pub bump: u8,
 }
