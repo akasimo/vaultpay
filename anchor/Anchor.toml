@@ -5,6 +5,7 @@ seeds = false
 skip-lint = false
 
 [programs.localnet]
+kamino = "6WyD6tVjFhb8MwkzUQbp4LHi2U2eiN9NMzhhPJs9gGXg"
 mock_yield_source = "EBpoUVQRJVrdYWzBgcDennNjfTsxaG8nspMAVCDoc1dx"
 vaultpay = "BpNWEQeYpjpA9w9EGXEfmHoLhb1nrYcm83wTptbHgdh5"
 
