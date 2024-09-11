@@ -1,10 +1,11 @@
 [toolchain]
 
 [features]
-resolution = true
+seeds = false
 skip-lint = false
 
 [programs.localnet]
+mock_yield_source = "EBpoUVQRJVrdYWzBgcDennNjfTsxaG8nspMAVCDoc1dx"
 vaultpay = "BpNWEQeYpjpA9w9EGXEfmHoLhb1nrYcm83wTptbHgdh5"
 
 [registry]
@@ -12,7 +13,7 @@ url = "https://api.apr.dev"
 
 [provider]
 cluster = "Localnet"
-wallet = "~/.config/solana/id.json"
+wallet = "/home/ubuntu/.config/solana/id.json"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
