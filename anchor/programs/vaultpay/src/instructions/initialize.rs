@@ -27,9 +27,8 @@ pub struct Initialize<'info> {
         bump,
     )]
     pub config: Account<'info, Config>,
-
-    pub yield_source: Program<'info, MockYieldSource>,
-
+    
+    pub yield_program: Program<'info, MockYieldSource>,
     pub token_program: Interface<'info, TokenInterface>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
