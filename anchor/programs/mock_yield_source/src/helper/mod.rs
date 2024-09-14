@@ -1,10 +1,6 @@
 use anchor_lang::prelude::*;
-use anchor_spl::{
-    associated_token::AssociatedToken,
-    token_interface::{Mint, TokenAccount, TokenInterface, transfer_checked, TransferChecked},
-};
+use anchor_spl::token_interface::{Mint, TokenAccount, TokenInterface, transfer_checked, TransferChecked};
 use crate::states::{YieldReserve, YieldAccount};
-use crate::errors::MockYieldSourceError;
 
 pub fn update_yield<'info>(
     yield_account: &mut Account<'info, YieldAccount>,
@@ -26,30 +22,36 @@ pub fn update_yield<'info>(
         return Err(ProgramError::InsufficientFunds.into());
     }
 
-    // Transfer new yield from reserve to yield token account
-    let seeds = &[
-        b"yield_reserve",
-        yield_reserve.token_mint.as_ref(),
-        &[yield_reserve.bump],
-    ];
-    let signer = &[&seeds[..]];
+    msg!("new_yield: {}", new_yield);
 
-    transfer_checked(
-        CpiContext::new_with_signer(
-            token_program.to_account_info(),
-            TransferChecked {
-                from: reserve_token_account.to_account_info(),
-                to: yield_token_account.to_account_info(),
-                mint: mint.to_account_info(),
-                authority: yield_reserve.to_account_info(),
-            },
-            signer,
-        ),
-        new_yield,
-        mint.decimals
-    )?;
+    if new_yield > 0 {
+        // Transfer new yield from reserve to yield token account
+        let seeds = &[
+            b"yield_reserve",
+            yield_reserve.token_mint.as_ref(),
+            &[yield_reserve.bump],
+        ];
+        let signer = &[&seeds[..]];
 
-    yield_account.unclaimed_yield += new_yield;
-    yield_account.last_update = current_time;
+        transfer_checked(
+            CpiContext::new_with_signer(
+                token_program.to_account_info(),
+                TransferChecked {
+                    from: reserve_token_account.to_account_info(),
+                    to: yield_token_account.to_account_info(),
+                    mint: mint.to_account_info(),
+                    authority: yield_reserve.to_account_info(),
+                },
+                signer,
+            ),
+            new_yield,
+            mint.decimals
+        )?;
+
+        yield_account.unclaimed_yield += new_yield;
+        yield_account.last_update = current_time;
+        msg!("transfered and updated yield");
+    }
+    
     Ok(())
 }

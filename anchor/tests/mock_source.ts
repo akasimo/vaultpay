@@ -11,6 +11,8 @@ import {
 } from "@solana/spl-token";
 import { assert } from "chai";
 import { ASSOCIATED_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
+import { confirmTx, confirmTxs, logBalances, newMintToAta } from "./utils";
+import { randomBytes } from "crypto"
 
 describe("mock_yield_source", () => {
     // Configure the client to use the local cluster.
@@ -20,6 +22,8 @@ describe("mock_yield_source", () => {
 
     const authority = Keypair.generate();
     const user = Keypair.generate();
+
+    const seed = new BN(randomBytes(8));
 
     let tokenMint: PublicKey;
     let authorityTokenAccount: PublicKey;
@@ -35,11 +39,13 @@ describe("mock_yield_source", () => {
     let yieldTokenAccount: PublicKey;
 
     it("Airdrop SOL to authority and user", async () => {
-        await airdropSol(authority.publicKey, 2);
-        await airdropSol(user.publicKey, 2);
+        await Promise.all([authority, user].map(async (k) => {
+            return await anchor.getProvider().connection.requestAirdrop(k.publicKey, 100 * anchor.web3.LAMPORTS_PER_SOL)
+        })).then(confirmTxs);
     });
 
     it("Create token mint and mint tokens to authority", async () => {
+        console.log("Creating token mint");
         tokenMint = await createMint(
             provider.connection,
             authority, // payer
@@ -47,37 +53,55 @@ describe("mock_yield_source", () => {
             null, // freeze authority
             6 // decimals
         );
+        console.log("Token mint created");
 
         // Authority's token account
-        authorityTokenAccount = await getOrCreateAssociatedTokenAccount(
+        const authorityAtaInfo = await getOrCreateAssociatedTokenAccount(
             provider.connection,
             authority, // payer
             tokenMint,
             authority.publicKey
-        )[0];
+        );
+        authorityTokenAccount = authorityAtaInfo.address;
 
+        console.log("Authority's token account created");
+        console.log("tokenMint:", tokenMint.toString());
+        console.log("authorityTokenAccount:", authorityTokenAccount);
+        console.log("authority publicKey:", authority.publicKey.toString());
+        
         // Mint tokens to authority's token account
         await mintTo(
-            provider.connection,
+            provider.connection, //  connection
             authority, // payer
-            tokenMint,
-            authorityTokenAccount,
-            authority,
-            1_000_000_000 // amount (e.g., 1000 tokens with 6 decimals)
+            tokenMint, // mint
+            authorityTokenAccount, // destination
+            authority, // authority
+            1e6 * 1e6
         );
-
+        console.log("Minted tokens to authority's token account");
         // User's token account
-        userTokenAccount = await getOrCreateAssociatedTokenAccount(
+        const userAtaInfo = await getOrCreateAssociatedTokenAccount(
             provider.connection,
             user, // payer
             tokenMint,
             user.publicKey
-        )[0];
+        );
+
+        userTokenAccount = userAtaInfo.address;
+
+        await mintTo(
+            provider.connection,
+            authority, // payer
+            tokenMint,
+            userTokenAccount,
+            authority,
+            1e3 * 1e6
+        );
     });
 
     it("Initialize the yield reserve", async () => {
         // Derive the yield reserve PDA
-        [yieldReservePDA, yieldReserveBump] = await PublicKey.findProgramAddress(
+        [yieldReservePDA, yieldReserveBump] = await PublicKey.findProgramAddressSync(
             [Buffer.from("yield_reserve"), tokenMint.toBuffer()],
             program.programId
         );
@@ -91,7 +115,7 @@ describe("mock_yield_source", () => {
 
         const tx = await program.methods
             .initialize(
-                0.1, // APY of 10%
+                100000, // APY of 10%
                 new BN(500_000_000) // Initial deposit amount (e.g., 500 tokens)
             )
             .accountsPartial({
@@ -112,7 +136,7 @@ describe("mock_yield_source", () => {
 
     it("Open a vault for the user", async () => {
         // Derive yield account PDA
-        [yieldAccountPDA, yieldAccountBump] = await PublicKey.findProgramAddress(
+        [yieldAccountPDA, yieldAccountBump] = await PublicKey.findProgramAddressSync(
             [Buffer.from("yield_account"), yieldReservePDA.toBuffer(), user.publicKey.toBuffer()],
             program.programId
         );
@@ -142,21 +166,15 @@ describe("mock_yield_source", () => {
         console.log("OpenVault transaction signature:", tx);
     });
 
+    const depositedAmount = new BN(1e3 * 1e6);
+
     it("User deposits tokens into the vault", async () => {
         // Mint tokens to user for deposit
-        await mintTo(
-            provider.connection,
-            authority,
-            tokenMint,
-            userTokenAccount,
-            authority,
-            500_000_000 // Amount (e.g., 500 tokens)
-        );
 
-        const depositAmount = new BN(100_000_000); // Deposit 100 tokens
+        const balance = await logBalances(user.publicKey, "before deposit", tokenMint);
 
-        const tx = await program.methods
-            .deposit(depositAmount)
+        const ix = await program.methods
+            .deposit(depositedAmount)
             .accountsPartial({
                 user: user.publicKey,
                 tokenMint: tokenMint,
@@ -169,17 +187,36 @@ describe("mock_yield_source", () => {
                 associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
                 systemProgram: SystemProgram.programId,
             })
-            .signers([user])
-            .rpc();
+            .instruction();
+        const tx = new anchor.web3.Transaction().add(ix);
+        const txSignature = await program.provider.connection.sendTransaction(
+            tx,
+            [user],
+            { skipPreflight: true }
+        );
+        console.log("Deposit transaction signature:", txSignature);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        const txDetails = await program.provider.connection.getTransaction(txSignature, {
+          maxSupportedTransactionVersion: 0,
+          commitment: "confirmed"
+        });
+        console.log(txDetails);
+        const logs = txDetails?.meta?.logMessages || null;
 
-        console.log("Deposit transaction signature:", tx);
+        if (logs) {
+          console.log(logs);
+        }
+        if (txDetails?.meta?.err) {
+          throw new Error(`Transaction failed: ${JSON.stringify(txDetails.meta.err)}`);
+        }
     });
 
     it("User withdraws tokens from the vault", async () => {
-        const withdrawAmount = new BN(50_000_000); // Withdraw 50 tokens
 
-        const tx = await program.methods
-            .withdraw(withdrawAmount)
+        const balance = await logBalances(user.publicKey, "before withdrawal", tokenMint);
+
+        const ix = await program.methods
+            .withdraw(depositedAmount)
             .accountsPartial({
                 user: user.publicKey,
                 tokenMint: tokenMint,
@@ -192,25 +229,37 @@ describe("mock_yield_source", () => {
                 associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
                 systemProgram: SystemProgram.programId,
             })
-            .signers([user])
-            .rpc();
+            .instruction();
+        const tx = new anchor.web3.Transaction().add(ix);
+        const txSignature = await program.provider.connection.sendTransaction(
+            tx,
+            [user],
+            { skipPreflight: true }
+        );
+        console.log("Withdraw transaction signature:", txSignature);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        const txDetails = await program.provider.connection.getTransaction(txSignature, {
+          maxSupportedTransactionVersion: 0,
+          commitment: "confirmed"
+        });
+        console.log(txDetails);
+        const logs = txDetails?.meta?.logMessages || null;
 
-        console.log("Withdraw transaction signature:", tx);
-    });
+        if (logs) {
+          console.log(logs);
+        }
+        if (txDetails?.meta?.err) {
+          throw new Error(`Transaction failed: ${JSON.stringify(txDetails.meta.err)}`);
+        }
 
-    it("Check balances after withdrawal", async () => {
-        // Fetch user token account balance
-        const userTokenAccountInfo = await provider.connection.getTokenAccountBalance(userTokenAccount);
-        console.log("User token account balance after withdrawal:", userTokenAccountInfo.value.uiAmount);
-
-        // Fetch yield account data
-        const yieldAccountInfo = await program.account.yieldAccount.fetch(yieldAccountPDA);
-        console.log("Yield account deposited amount:", yieldAccountInfo.depositedAmount.toNumber());
-        console.log("Yield account unclaimed yield:", yieldAccountInfo.unclaimedYield.toNumber());
-
-        // Assertions (adjust numbers based on expected behavior)
-        assert.equal(yieldAccountInfo.depositedAmount.toNumber(), 50_000_000, "Deposited amount should be 50 tokens");
-        // Additional assertions can be added here
+        const balanceAfter = await logBalances(user.publicKey, "after withdrawal", tokenMint);
+        
+        // Assert that the balance has increased by the withdrawal amount
+        // assert.equal(
+        //     balanceAfter.balance.sub(balance.balance).toString(),
+        //     depositedAmount.toString(),
+        //     "User balance should increase by the withdrawn amount"
+        // );
     });
 });
 

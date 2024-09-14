@@ -4,7 +4,7 @@ use anchor_spl::{
     token_interface::{Mint, TokenAccount, TokenInterface, transfer_checked, TransferChecked},
 };
 
-use crate::states::{YieldReserve, YieldAccount};
+use crate::states::YieldReserve;
 
 #[derive(Accounts)]
 pub struct Initialize<'info> {

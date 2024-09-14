@@ -64,6 +64,9 @@ impl<'info> Deposit<'info> {
             &self.token_mint
         )?;
 
+        let user_balance = self.user_token_account.amount;
+        msg!("User balance: {}", user_balance);
+
         transfer_checked(
             CpiContext::new(
                 self.token_program.to_account_info(),
@@ -77,12 +80,12 @@ impl<'info> Deposit<'info> {
             amount,
             self.token_mint.decimals,
         )?;
-
+        msg!("Deposited amount: {}", amount);
         // self.yield_account.deposited_amount += amount;
         self.yield_account.deposited_amount = self
             .yield_account
             .deposited_amount
-            .checked_sub(amount)
+            .checked_add(amount)
             .ok_or(MockYieldSourceError::InsufficientFunds)?;
         Ok(())
     }

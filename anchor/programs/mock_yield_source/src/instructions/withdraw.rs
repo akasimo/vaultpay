@@ -65,6 +65,9 @@ impl<'info> Withdraw<'info> {
             &self.token_mint
         )?;
 
+        let yield_account_balance = self.yield_token_account.amount;
+        msg!("Yield account balance: {}", yield_account_balance);
+
         let seeds = &[
             b"yield_account",
             self.yield_reserve.to_account_info().key.as_ref(),

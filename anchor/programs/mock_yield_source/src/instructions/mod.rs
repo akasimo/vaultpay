@@ -7,5 +7,5 @@ pub mod open_vault;
 pub use initialize::*;
 pub use deposit::*;
 pub use withdraw::*;
-pub use claim::*;
+// pub use claim::*;
 pub use open_vault::*;
