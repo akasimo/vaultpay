@@ -12,6 +12,13 @@ pub struct OpenVault<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
     pub token_mint: InterfaceAccount<'info, Mint>,
+    
+    /// CHECK: Can be a PDA
+    #[account(
+        mut,
+        signer
+    )]
+    pub authority: UncheckedAccount<'info>,
 
     #[account(
         seeds = [b"yield_reserve", token_mint.key().as_ref()],
@@ -23,7 +30,7 @@ pub struct OpenVault<'info> {
         init,
         payer = user,
         space = 8 + YieldAccount::LEN,
-        seeds = [b"yield_account", yield_reserve.key().as_ref(), user.key().as_ref()],
+        seeds = [b"yield_account", yield_reserve.key().as_ref(), authority.key().as_ref()],
         bump
     )]
     pub yield_account: Account<'info, YieldAccount>,
@@ -42,10 +49,11 @@ pub struct OpenVault<'info> {
 }
 
 impl<'info> OpenVault<'info> {
-    pub fn open_vault(&mut self, bumps: &OpenVaultBumps) -> Result<()> {
+    pub fn open_vault(&mut self, authority: Pubkey, bumps: &OpenVaultBumps) -> Result<()> {
         self.yield_account.set_inner(YieldAccount {
             owner: self.user.key(),
-            yield_reserve: self.yield_reserve.key(),
+            authority,
+            // yield_reserve: self.yield_reserve.key(),
             token_mint: self.token_mint.key(),
             deposited_amount: 0,
             unclaimed_yield: 0,

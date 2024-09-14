@@ -14,6 +14,13 @@ pub struct Withdraw<'info> {
 
     pub token_mint: InterfaceAccount<'info, Mint>,
 
+    /// CHECK: Can be a PDA
+    #[account(
+        mut,
+        signer
+    )]
+    pub authority: UncheckedAccount <'info>,
+
     #[account(
         mut,
         associated_token::mint = token_mint,
@@ -30,7 +37,8 @@ pub struct Withdraw<'info> {
 
     #[account(
         mut,
-        seeds = [b"yield_account", yield_reserve.key().as_ref(), user.key().as_ref()],
+        has_one = authority,
+        seeds = [b"yield_account", yield_reserve.key().as_ref(), authority.key().as_ref()],
         bump = yield_account.bump
     )]
     pub yield_account: Account<'info, YieldAccount>,
@@ -71,7 +79,7 @@ impl<'info> Withdraw<'info> {
         let seeds = &[
             b"yield_account",
             self.yield_reserve.to_account_info().key.as_ref(),
-            self.user.to_account_info().key.as_ref(),
+            self.authority.to_account_info().key.as_ref(),
             &[self.yield_account.bump],
         ];
         let signer = &[&seeds[..]];
