@@ -200,13 +200,14 @@ describe("mock_yield_source", () => {
           maxSupportedTransactionVersion: 0,
           commitment: "confirmed"
         });
-        console.log(txDetails);
-        const logs = txDetails?.meta?.logMessages || null;
-
-        if (logs) {
-          console.log(logs);
-        }
+        
         if (txDetails?.meta?.err) {
+            console.log(txDetails);
+            const logs = txDetails?.meta?.logMessages || null;
+
+            if (logs) {
+            console.log(logs);
+            }
           throw new Error(`Transaction failed: ${JSON.stringify(txDetails.meta.err)}`);
         }
     });
@@ -242,13 +243,14 @@ describe("mock_yield_source", () => {
           maxSupportedTransactionVersion: 0,
           commitment: "confirmed"
         });
-        console.log(txDetails);
-        const logs = txDetails?.meta?.logMessages || null;
-
-        if (logs) {
-          console.log(logs);
-        }
+        
         if (txDetails?.meta?.err) {
+            console.log(txDetails);
+            const logs = txDetails?.meta?.logMessages || null;
+
+            if (logs) {
+            console.log(logs);
+            }
           throw new Error(`Transaction failed: ${JSON.stringify(txDetails.meta.err)}`);
         }
 
