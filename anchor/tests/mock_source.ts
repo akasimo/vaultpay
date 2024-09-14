@@ -54,14 +54,14 @@ describe("mock_yield_source", () => {
             authority, // payer
             tokenMint,
             authority.publicKey
-        );
+        )[0];
 
         // Mint tokens to authority's token account
         await mintTo(
             provider.connection,
             authority, // payer
             tokenMint,
-            authorityTokenAccount.address,
+            authorityTokenAccount,
             authority,
             1_000_000_000 // amount (e.g., 1000 tokens with 6 decimals)
         );
@@ -72,7 +72,7 @@ describe("mock_yield_source", () => {
             user, // payer
             tokenMint,
             user.publicKey
-        );
+        )[0];
     });
 
     it("Initialize the yield reserve", async () => {
@@ -94,10 +94,10 @@ describe("mock_yield_source", () => {
                 0.1, // APY of 10%
                 new BN(500_000_000) // Initial deposit amount (e.g., 500 tokens)
             )
-            .accounts({
+            .accountsPartial({
                 authority: authority.publicKey,
-                tokenMint: tokenMint,
-                authorityTokenAccount: authorityTokenAccount.address,
+                tokenMint,
+                authorityTokenAccount,
                 yieldReserve: yieldReservePDA,
                 reserveTokenAccount: reserveTokenAccount,
                 tokenProgram: TOKEN_PROGRAM_ID,
@@ -126,7 +126,7 @@ describe("mock_yield_source", () => {
 
         const tx = await program.methods
             .openVault()
-            .accounts({
+            .accountsPartial({
                 user: user.publicKey,
                 tokenMint: tokenMint,
                 yieldReserve: yieldReservePDA,
@@ -148,7 +148,7 @@ describe("mock_yield_source", () => {
             provider.connection,
             authority,
             tokenMint,
-            userTokenAccount.address,
+            userTokenAccount,
             authority,
             500_000_000 // Amount (e.g., 500 tokens)
         );
@@ -157,10 +157,10 @@ describe("mock_yield_source", () => {
 
         const tx = await program.methods
             .deposit(depositAmount)
-            .accounts({
+            .accountsPartial({
                 user: user.publicKey,
                 tokenMint: tokenMint,
-                userTokenAccount: userTokenAccount.address,
+                userTokenAccount: userTokenAccount,
                 yieldReserve: yieldReservePDA,
                 yieldAccount: yieldAccountPDA,
                 yieldTokenAccount: yieldTokenAccount,
@@ -180,10 +180,10 @@ describe("mock_yield_source", () => {
 
         const tx = await program.methods
             .withdraw(withdrawAmount)
-            .accounts({
+            .accountsPartial({
                 user: user.publicKey,
                 tokenMint: tokenMint,
-                userTokenAccount: userTokenAccount.address,
+                userTokenAccount: userTokenAccount,
                 yieldReserve: yieldReservePDA,
                 yieldAccount: yieldAccountPDA,
                 yieldTokenAccount: yieldTokenAccount,
@@ -200,7 +200,7 @@ describe("mock_yield_source", () => {
 
     it("Check balances after withdrawal", async () => {
         // Fetch user token account balance
-        const userTokenAccountInfo = await provider.connection.getTokenAccountBalance(userTokenAccount.address);
+        const userTokenAccountInfo = await provider.connection.getTokenAccountBalance(userTokenAccount);
         console.log("User token account balance after withdrawal:", userTokenAccountInfo.value.uiAmount);
 
         // Fetch yield account data
