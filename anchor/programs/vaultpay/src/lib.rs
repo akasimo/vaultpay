@@ -38,6 +38,16 @@ pub mod vaultpay {
         Ok(())
     }
 
+    pub fn deposit(ctx: Context<Deposit>, amount: u64) -> Result<()> {
+        ctx.accounts.deposit(amount, &ctx.bumps)?;
+        Ok(())
+    }
+
+    pub fn withdraw(ctx: Context<Withdraw>, amount: u64) -> Result<()> {
+        ctx.accounts.withdraw(amount, &ctx.bumps)?;
+        Ok(())
+    }
+
     pub fn init_subscription(
         ctx: Context<InitSubscription>,
         seed: u64,

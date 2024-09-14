@@ -50,12 +50,8 @@ pub struct ProcessPayment<'info> {
     )]
     pub yield_reserve: Account<'info, YieldReserve>,
 
-    #[account(
-        mut,
-        seeds = [b"yield_account", yield_reserve.key().as_ref(), vaultpay_authority.key().as_ref()],
-        bump = yield_account.bump,
-    )]
-    pub yield_account: Account<'info, YieldAccount>,
+    /// CHECK: cant check, because it ll be constrained with lending platforms programid
+    pub yield_account: UncheckedAccount<'info>,
 
     #[account(
         mut,
@@ -86,7 +82,7 @@ impl<'info> ProcessPayment<'info> {
     pub fn process_payment(&mut self, bumps: &ProcessPaymentBumps) -> Result<()> {
         // Ensure subscription is active
         if self.subscription.status != 0 {
-            return Err(error!(crate::errors::ErrorCode::SubscriptionNotActive));
+            return Err(error!(crate::errors::VaultPayError::SubscriptionNotActive));
         }
 
         // Calculate platform fee and vendor amount

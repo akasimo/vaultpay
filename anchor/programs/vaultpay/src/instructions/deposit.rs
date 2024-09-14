@@ -27,12 +27,8 @@ pub struct Deposit<'info> {
     /// CHECK: This is a PDA used as a signer
     pub vaultpay_authority: UncheckedAccount<'info>,
 
-    #[account(
-        mut,
-        seeds = [b"yield_account", yield_reserve.key().as_ref(), vaultpay_authority.key().as_ref()],
-        bump = yield_account.bump
-    )]
-    pub yield_account: Account<'info, YieldAccount>,
+    /// CHECK: cant check, because it ll be constrained with lending platforms programid
+    pub yield_account: UncheckedAccount<'info>,
 
     #[account(
         mut,
@@ -62,10 +58,11 @@ pub struct Deposit<'info> {
 }
 
 impl<'info> Deposit<'info> {
-    pub fn deposit(&mut self, amount: u64, bump: u8) -> Result<()> {
+    pub fn deposit(&mut self, amount: u64, bumps: &DepositBumps) -> Result<()> {
         let cpi_program = self.yield_program.to_account_info();
         let cpi_accounts = YieldSourceDeposit {
             user: self.vaultpay_authority.to_account_info(),
+            authority: self.vaultpay_authority.to_account_info(),
             token_mint: self.token_mint.to_account_info(),
             user_token_account: self.user_token_account.to_account_info(),
             yield_reserve: self.yield_reserve.to_account_info(),
@@ -80,7 +77,7 @@ impl<'info> Deposit<'info> {
         let seeds = &[
             b"vaultpay_authority",
             self.user.key.as_ref(),
-            &[bump],
+            &[bumps.vaultpay_authority],
         ];
         let signer_seeds = &[&seeds[..]];
 

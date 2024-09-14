@@ -22,7 +22,7 @@ impl<'info> CancelSubscription<'info> {
     pub fn cancel_subscription(&mut self) -> Result<()> {
         require!(
             self.subscription.status == 0,
-            crate::errors::ErrorCode::SubscriptionNotActive
+            crate::errors::VaultPayError::SubscriptionNotActive
         );
         self.subscription.status = 1; // Canceled
         Ok(())
