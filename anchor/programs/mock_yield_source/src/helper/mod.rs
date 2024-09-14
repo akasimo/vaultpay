@@ -4,6 +4,7 @@ use anchor_spl::{
     token_interface::{Mint, TokenAccount, TokenInterface, transfer_checked, TransferChecked},
 };
 use crate::states::{YieldReserve, YieldAccount};
+use crate::errors::MockYieldSourceError;
 
 pub fn update_yield<'info>(
     yield_account: &mut Account<'info, YieldAccount>,
@@ -14,6 +15,7 @@ pub fn update_yield<'info>(
     mint: &InterfaceAccount<'info, Mint>,
 ) -> Result<()> {
     let current_time = Clock::get()?.unix_timestamp;
+    // let time_elapsed = current_time - yield_account.last_update;
     let time_elapsed =
         (current_time - yield_account.last_update) as f64 / (365.0 * 24.0 * 60.0 * 60.0);
     let yield_rate = (1.0 + yield_reserve.apy).powf(time_elapsed) - 1.0;

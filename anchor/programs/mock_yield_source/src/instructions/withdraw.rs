@@ -66,7 +66,8 @@ impl<'info> Withdraw<'info> {
         )?;
 
         let seeds = &[
-            self.yield_account.to_account_info().key.as_ref(),
+            b"yield_account",
+            self.yield_reserve.to_account_info().key.as_ref(),
             self.user.to_account_info().key.as_ref(),
             &[self.yield_account.bump],
         ];

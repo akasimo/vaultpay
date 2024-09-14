@@ -4,6 +4,7 @@ pub mod instructions;
 pub use instructions::*;
 pub mod states;
 pub mod helper;
+pub mod errors;
 
 declare_id!("EBpoUVQRJVrdYWzBgcDennNjfTsxaG8nspMAVCDoc1dx");
 

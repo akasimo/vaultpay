@@ -4,7 +4,7 @@ use anchor_spl::{
     token_interface::{Mint, TokenAccount, TokenInterface, transfer_checked, TransferChecked},
 };
 
-use crate::states::{YieldReserve, YieldAccount};
+use crate::{errors::MockYieldSourceError, states::{YieldAccount, YieldReserve}};
 use crate::helper::update_yield;
 
 #[derive(Accounts)]
@@ -78,7 +78,12 @@ impl<'info> Deposit<'info> {
             self.token_mint.decimals,
         )?;
 
-        self.yield_account.deposited_amount += amount;
+        // self.yield_account.deposited_amount += amount;
+        self.yield_account.deposited_amount = self
+            .yield_account
+            .deposited_amount
+            .checked_sub(amount)
+            .ok_or(MockYieldSourceError::InsufficientFunds)?;
         Ok(())
     }
 }
