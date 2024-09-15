@@ -29,6 +29,10 @@ describe("mock_yield_source", () => {
     let authorityTokenAccount: PublicKey;
     let userTokenAccount: PublicKey;
     let reserveTokenAccount: PublicKey;
+    
+    let vaultAuthority: PublicKey;
+    // vaultAuthority = user.publicKey;
+    let vaultReserveBump: number;
 
     let yieldReservePDA: PublicKey;
     let yieldReserveBump: number;
@@ -42,6 +46,11 @@ describe("mock_yield_source", () => {
         await Promise.all([authority, user].map(async (k) => {
             return await anchor.getProvider().connection.requestAirdrop(k.publicKey, 100 * anchor.web3.LAMPORTS_PER_SOL)
         })).then(confirmTxs);
+        [vaultAuthority, vaultReserveBump] = await PublicKey.findProgramAddressSync(
+            [Buffer.from("vaultpay_authority"), user.publicKey.toBuffer()],
+            program.programId
+        );
+        
     });
 
     it("Create token mint and mint tokens to authority", async () => {
@@ -153,6 +162,7 @@ describe("mock_yield_source", () => {
             .accountsPartial({
                 user: user.publicKey,
                 tokenMint: tokenMint,
+                vaultAuthority: vaultAuthority,
                 yieldReserve: yieldReservePDA,
                 yieldAccount: yieldAccountPDA,
                 yieldTokenAccount: yieldTokenAccount,
@@ -178,6 +188,7 @@ describe("mock_yield_source", () => {
             .accountsPartial({
                 user: user.publicKey,
                 tokenMint: tokenMint,
+                vaultAuthority: vaultAuthority,
                 userTokenAccount: userTokenAccount,
                 yieldReserve: yieldReservePDA,
                 yieldAccount: yieldAccountPDA,
@@ -221,6 +232,7 @@ describe("mock_yield_source", () => {
             .accountsPartial({
                 user: user.publicKey,
                 tokenMint: tokenMint,
+                vaultAuthority: vaultAuthority,
                 userTokenAccount: userTokenAccount,
                 yieldReserve: yieldReservePDA,
                 yieldAccount: yieldAccountPDA,
