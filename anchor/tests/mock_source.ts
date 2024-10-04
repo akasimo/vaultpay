@@ -162,7 +162,6 @@ describe("mock_yield_source", () => {
             .accountsPartial({
                 user: user.publicKey,
                 tokenMint: tokenMint,
-                vaultAuthority: vaultAuthority,
                 yieldReserve: yieldReservePDA,
                 yieldAccount: yieldAccountPDA,
                 yieldTokenAccount: yieldTokenAccount,
@@ -172,7 +171,6 @@ describe("mock_yield_source", () => {
             })
             .signers([user])
             .rpc();
-
         console.log("OpenVault transaction signature:", tx);
     });
 
@@ -188,7 +186,6 @@ describe("mock_yield_source", () => {
             .accountsPartial({
                 user: user.publicKey,
                 tokenMint: tokenMint,
-                vaultAuthority: vaultAuthority,
                 userTokenAccount: userTokenAccount,
                 yieldReserve: yieldReservePDA,
                 yieldAccount: yieldAccountPDA,
@@ -232,7 +229,6 @@ describe("mock_yield_source", () => {
             .accountsPartial({
                 user: user.publicKey,
                 tokenMint: tokenMint,
-                vaultAuthority: vaultAuthority,
                 userTokenAccount: userTokenAccount,
                 yieldReserve: yieldReservePDA,
                 yieldAccount: yieldAccountPDA,
