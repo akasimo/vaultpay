@@ -17,8 +17,8 @@ pub mod mock_yield_source {
         Ok(())
     }
 
-    pub fn open_vault(ctx: Context<OpenVault>, authority: Pubkey) -> Result<()> {
-        ctx.accounts.open_vault(authority, &ctx.bumps)?;
+    pub fn open_vault(ctx: Context<OpenVault>) -> Result<()> {
+        ctx.accounts.open_vault(&ctx.bumps)?;
         Ok(())
     }
 

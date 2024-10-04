@@ -3,8 +3,7 @@ use anchor_lang::prelude::*;
 #[account]
 pub struct YieldAccount {
     pub owner: Pubkey,
-    pub authority: Pubkey,
-    // pub yield_reserve: Pubkey,
+    pub yield_reserve: Pubkey,
     pub token_mint: Pubkey,
     pub deposited_amount: u64,
     pub unclaimed_yield: u64,
