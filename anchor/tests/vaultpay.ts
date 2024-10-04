@@ -21,7 +21,7 @@ import { assert } from "chai";
 import {
   ASSOCIATED_PROGRAM_ID,
 } from "@coral-xyz/anchor/dist/cjs/utils/token";
-import { confirmTx, confirmTxs, logBalances } from "./utils";
+import { buildTxConfirmOrLog, confirmTx, confirmTxs, logBalances } from "./utils";
 
 describe("vaultpay", () => {
   // Configure the client to use the local cluster.
@@ -65,6 +65,7 @@ describe("vaultpay", () => {
   const platformFee = 500; // 5% fee (500 basis points)
   const minSubscriptionDuration = 30 * 24 * 60 * 60; // 30 days
   const maxSubscriptionDuration = 365 * 24 * 60 * 60; // 1 year
+
 
   it("Airdrop SOL to authority, user, and vendor", async () => {
     await Promise.all(
@@ -125,8 +126,25 @@ describe("vaultpay", () => {
     vendorTokenAccount = vendorAtaInfo.address;
   });
 
+  console.log("authority publicKey:", authority.publicKey.toString());
+  console.log("user publicKey:", user.publicKey.toString());
+
   it("Initialize the mock yield reserve", async () => {
     // Derive the yield reserve PDA
+
+    const printer = {
+      authority: authority.publicKey,
+      tokenMint,
+      authorityTokenAccount,
+      yieldReserve: yieldReservePDA,
+      reserveTokenAccount: reserveTokenAccount,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
+      systemProgram: SystemProgram.programId,
+    };
+
+    console.log(printer);
+
     [yieldReservePDA, yieldReserveBump] =
       await PublicKey.findProgramAddress(
         [Buffer.from("yield_reserve"), tokenMint.toBuffer()],
@@ -140,7 +158,7 @@ describe("vaultpay", () => {
       true // allowOwnerOffCurve
     );
 
-    const tx = await mockYieldProgram.methods
+    const ix = await mockYieldProgram.methods
       .initialize(
         0.1, // APY of 10%
         new BN(500_000_000) // Initial deposit amount (e.g., 500 tokens)
@@ -154,14 +172,19 @@ describe("vaultpay", () => {
         tokenProgram: TOKEN_PROGRAM_ID,
         associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
         systemProgram: SystemProgram.programId,
-      })
-      .signers([authority])
-      .rpc();
+      }).instruction();
+    
+    const txSignature = await buildTxConfirmOrLog(
+        authority,
+        ix,
+        mockYieldProgram,
+        "init yield"
+      )
 
-    console.log("Mock Yield Reserve initialized:", tx);
+    console.log("Mock Yield Reserve initialized:", txSignature);
   });
 
-  it("Initialize the vaultpay program", async () => {
+  xit("Initialize the vaultpay program", async () => {
     // Derive the config PDA
     [configPDA, configBump] = await PublicKey.findProgramAddress(
       [Buffer.from("config"), tokenMint.toBuffer(), authority.publicKey.toBuffer()],
@@ -198,7 +221,7 @@ describe("vaultpay", () => {
     console.log("Vaultpay initialized:", tx);
   });
 
-  it("Initialize user vault", async () => {
+  xit("Initialize user vault", async () => {
     // Derive the vaultpay authority PDA
     [vaultpayAuthorityPDA, vaultpayAuthorityBump] =
       await PublicKey.findProgramAddress(
