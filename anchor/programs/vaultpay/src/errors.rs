@@ -7,4 +7,7 @@ pub enum VaultPayError {
 
     #[msg("Invalid Yield Account")]
     InvalidYieldAccount,
+
+    #[msg("Invalid Yield Reserve")]
+    InvalidYieldReserve,
 }

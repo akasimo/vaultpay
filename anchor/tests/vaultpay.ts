@@ -184,7 +184,7 @@ describe("vaultpay", () => {
     console.log("Mock Yield Reserve initialized:", txSignature);
   });
 
-  xit("Initialize the vaultpay program", async () => {
+  it("Initialize the vaultpay program", async () => {
     // Derive the config PDA
     [configPDA, configBump] = await PublicKey.findProgramAddress(
       [Buffer.from("config"), tokenMint.toBuffer(), authority.publicKey.toBuffer()],
@@ -221,11 +221,11 @@ describe("vaultpay", () => {
     console.log("Vaultpay initialized:", tx);
   });
 
-  xit("Initialize user vault", async () => {
+  it("Initialize user vault", async () => {
     // Derive the vaultpay authority PDA
     [vaultpayAuthorityPDA, vaultpayAuthorityBump] =
       await PublicKey.findProgramAddress(
-        [Buffer.from("vaultpay_authority"), user.publicKey.toBuffer()],
+        [Buffer.from("vaultpay_authority"), configPDA.toBuffer(), user.publicKey.toBuffer()],
         vaultpayProgram.programId
       );
 
@@ -235,6 +235,26 @@ describe("vaultpay", () => {
       mockYieldProgram.programId
     );
 
+    // Transfer 1 SOL to vaultpay authority PDA
+    const transferInstruction = SystemProgram.transfer({
+      fromPubkey: user.publicKey,
+      toPubkey: vaultpayAuthorityPDA,
+      lamports: anchor.web3.LAMPORTS_PER_SOL, // 1 SOL
+    });
+
+    const transferTxSignature = await buildTxConfirmOrLog(
+      user,
+      transferInstruction,
+      vaultpayProgram,
+      "transfer 1 SOL to vaultpay authority PDA"
+    );
+
+    console.log("1 SOL transferred to vaultpay authority PDA:", transferTxSignature);
+
+    // Verify the balance of vaultpay authority PDA
+    const vaultpayAuthorityBalance = await provider.connection.getBalance(vaultpayAuthorityPDA);
+    console.log("Vaultpay authority PDA balance:", vaultpayAuthorityBalance / anchor.web3.LAMPORTS_PER_SOL, "SOL");
+
     // Yield token account (ATA of yield account)
     yieldTokenAccount = await getAssociatedTokenAddress(
       tokenMint,
@@ -242,11 +262,30 @@ describe("vaultpay", () => {
       true // allowOwnerOffCurve
     );
 
-    const tx = await vaultpayProgram.methods
+    console.log("Mock Yield Program ID:", mockYieldProgram.programId.toString());
+
+    const printer = {
+      user: user.publicKey,
+      config: configPDA,
+      tokenMint,
+      yieldReserve: yieldReservePDA,
+      vaultpayAuthority: vaultpayAuthorityPDA,
+      yieldAccount: yieldAccountPDA,
+      yieldTokenAccount: yieldTokenAccount,
+      yieldProgram: mockYieldProgram.programId,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
+      systemProgram: SystemProgram.programId,
+    };
+
+    console.log(printer);
+
+    const ix = await vaultpayProgram.methods
       .initUser()
-      .accountsPartial({
+      .accounts({
         user: user.publicKey,
         tokenMint,
+        config: configPDA,
         yieldReserve: yieldReservePDA,
         vaultpayAuthority: vaultpayAuthorityPDA,
         yieldAccount: yieldAccountPDA,
@@ -255,11 +294,16 @@ describe("vaultpay", () => {
         tokenProgram: TOKEN_PROGRAM_ID,
         associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
         systemProgram: SystemProgram.programId,
-      })
-      .signers([user])
-      .rpc();
+      }).instruction();
 
-    console.log("User vault initialized:", tx);
+    const txSignature = await buildTxConfirmOrLog(
+      user,
+      ix,
+      vaultpayProgram,
+      "init user"
+    )
+
+    console.log("User vault initialized:", txSignature);
   });
 
   xit("User deposits tokens into vault", async () => {

@@ -6,7 +6,8 @@ use anchor_spl::{
 
 use mock_yield_source::{program::MockYieldSource};
 use mock_yield_source::cpi::accounts::OpenVault;
-use mock_yield_source::states::{YieldReserve, YieldAccount};
+use mock_yield_source::states::YieldReserve;
+use crate::states::Config;
 
 use crate::errors::VaultPayError;
 
@@ -15,30 +16,51 @@ pub struct InitUser<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
     pub token_mint: Box<InterfaceAccount<'info, Mint>>,
-
+    
     #[account(
-        seeds = [b"yield_reserve", token_mint.key().as_ref()],
-        bump = yield_reserve.bump
+        seeds = [b"config", token_mint.key().as_ref(), config.authority.key().as_ref()],
+        bump = config.bump
     )]
-    pub yield_reserve: Account<'info, YieldReserve>,
+    pub config: Account<'info, Config>,
 
     #[account(
-        seeds = [b"vaultpay_authority", user.key().as_ref()],
+        // init_if_needed,
+        // payer = user,
+        mut,
+        seeds = [b"vaultpay_authority", config.key().as_ref(), user.key().as_ref()],
         bump
     )]
     /// CHECK: This is a PDA used as a signer
     pub vaultpay_authority: UncheckedAccount<'info>,
-
-    /// CHECK: cant check, because it ll be constrained with lending platforms programid
+    
+    /// CHECK: cant check, because it ll be constrained with lending platforms programid. this is the account in mocksource
+    #[account(
+        mut
+    )]
     pub yield_account: UncheckedAccount<'info>,
 
+    // #[account(
+    //     // seeds = [b"yield_reserve", token_mint.key().as_ref()],
+    //     // bump = yield_reserve.bump
+    // )]
+    // pub yield_reserve: Account<'info, YieldReserve>,
+    /// CHECK: asd
     #[account(
-        init_if_needed,
-        payer = user,
-        associated_token::mint = token_mint,
-        associated_token::authority = yield_account
+        mut
     )]
-    pub yield_token_account: InterfaceAccount<'info, TokenAccount>,
+    pub yield_reserve: UncheckedAccount<'info>,
+    
+    // #[account(
+    //     associated_token::mint = token_mint,
+    //     associated_token::authority = yield_account
+    // )]
+    // pub yield_token_account: InterfaceAccount<'info, TokenAccount>,
+
+    /// CHECK:
+    #[account(
+        mut
+    )]
+    pub yield_token_account: UncheckedAccount<'info>,
 
     pub yield_program: Program<'info, MockYieldSource>,
     pub token_program: Interface<'info, TokenInterface>,
@@ -49,20 +71,26 @@ pub struct InitUser<'info> {
 impl<'info> InitUser<'info> {
     pub fn init_user(&mut self, bumps: &InitUserBumps) -> Result<()> {
         msg!("Yield Account pubkey: {}", self.yield_account.key());
-
-        let (yield_account_pda, yield_account_bump) = Pubkey::find_program_address(
+        let (yield_account_pda, _yield_account_bump) = Pubkey::find_program_address(
             &[b"yield_account", self.yield_reserve.key().as_ref(), self.vaultpay_authority.key().as_ref()],
             &mock_yield_source::ID, // Use the program ID of mock_yield_source
         );
-        msg!("Yield Account PDA pubkey: {}", yield_account_pda);
 
+        msg!("Yield Account PDA pubkey: {}", yield_account_pda);
         require!(self.yield_account.key() == yield_account_pda, VaultPayError::InvalidYieldAccount);
 
+        // msg!("Yield Reserve pubkey: {}", self.yield_reserve.key());
+        // let (_yield_reserve_pda, _yield_reserve_bump) = Pubkey::find_program_address(
+        //     &[b"yield_reserve", self.token_mint.key().as_ref()],
+        //     &mock_yield_source::ID, // Use the program ID of mock_yield_source
+        // );
+        // msg!("Yeild Reserve PDA pubkey: {}", _yield_reserve_pda);
+        // require!(self.yield_reserve.key() == _yield_reserve_pda, VaultPayError::InvalidYieldReserve);
         
         let cpi_program = self.yield_program.to_account_info();
         let cpi_accounts = OpenVault {
-            user: self.user.to_account_info(),
-            authority: self.vaultpay_authority.to_account_info(),
+            user: self.vaultpay_authority.to_account_info(),
+            // authority: self.vaultpay_authority.to_account_info(),
             token_mint: self.token_mint.to_account_info(),
             yield_reserve: self.yield_reserve.to_account_info(),
             yield_account: self.yield_account.to_account_info(),
@@ -72,15 +100,18 @@ impl<'info> InitUser<'info> {
             associated_token_program: self.associated_token_program.to_account_info(),
         };
 
+        let binding_config = self.config.key();
+
         let seeds = &[
             b"vaultpay_authority",
+            binding_config.as_ref(),
             self.user.key.as_ref(),
             &[bumps.vaultpay_authority],
         ];
         let signer_seeds = &[&seeds[..]];
 
         let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer_seeds);
-        mock_yield_source::cpi::open_vault(cpi_ctx, self.vaultpay_authority.key())?;
+        mock_yield_source::cpi::open_vault(cpi_ctx)?;
         Ok(())
     }
 }
