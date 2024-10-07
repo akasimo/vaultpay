@@ -109,7 +109,7 @@ export async function createAndFundATA(
     return ata;
 }
 
-export async function buildTxConfirmOrLog(signer:anchor.web3.Keypair, ix: anchor.web3.TransactionInstruction, program: any, operation: string | null) {
+export async function buildTxConfirmOrLog(signer:anchor.web3.Keypair, ix: anchor.web3.TransactionInstruction, program: any, operation: string | null): Promise<string> {
     const tx = new anchor.web3.Transaction().add(ix);
     const txSignature = await program.provider.connection.sendTransaction(
         tx,
@@ -130,9 +130,10 @@ export async function buildTxConfirmOrLog(signer:anchor.web3.Keypair, ix: anchor
         const logs = txDetails?.meta?.logMessages || null;
 
         if (logs) {
-        console.log(logs);
+            console.log(logs);
         }
         throw new Error(`Transaction failed: ${JSON.stringify(txDetails.meta.err)}`);
     }
     
+    return txSignature;
 }

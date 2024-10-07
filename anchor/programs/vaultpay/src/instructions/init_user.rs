@@ -34,21 +34,15 @@ pub struct InitUser<'info> {
     pub vaultpay_authority: UncheckedAccount<'info>,
     
     /// CHECK: directing to yield platform
-    #[account(
-        mut
-    )]
+    #[account(mut)]
     pub yield_account: UncheckedAccount<'info>,
 
     /// CHECK: directing to yield platform
-    #[account(
-        mut
-    )]
+    #[account(mut)]
     pub yield_reserve: UncheckedAccount<'info>,
     
     /// CHECK: directing to yield platform
-    #[account(
-        mut
-    )]
+    #[account(mut)]
     pub yield_token_account: UncheckedAccount<'info>,
 
     pub yield_program: Program<'info, MockYieldSource>,
@@ -109,7 +103,6 @@ impl<'info> InitUser<'info> {
         };
 
         let binding_config = self.config.key();
-
         let seeds = &[
             b"vaultpay_authority",
             binding_config.as_ref(),
