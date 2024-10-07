@@ -16,6 +16,7 @@ import {
   getAssociatedTokenAddress,
   mintTo,
   TOKEN_PROGRAM_ID,
+  getAccount,
 } from "@solana/spl-token";
 import { assert } from "chai";
 import {
@@ -266,7 +267,7 @@ describe("vaultpay", () => {
 
     const ix = await vaultpayProgram.methods
       .initUser()
-      .accounts({
+      .accountsPartial({
         user: user.publicKey,
         tokenMint,
         config: configPDA,
@@ -294,39 +295,62 @@ describe("vaultpay", () => {
 
   });
 
-  xit("User deposits tokens into vault", async () => {
+  it("User deposits tokens into vault", async () => {
     // Mint tokens to user
     await mintTo(
       provider.connection,
-      authority,
+      user,
       tokenMint,
       userTokenAccount,
       authority,
       1_000_000_000 // Amount (e.g., 1000 tokens)
     );
 
-    const depositAmount = new BN(500_000_000); // Deposit 500 tokens
+    const depositAmount = new BN(700_000_000); // Deposit 500 tokens
+    
+    const vaultpayAuthorityAta = await getOrCreateAssociatedTokenAccount(
+      provider.connection,
+      user,
+      tokenMint,
+      vaultpayAuthorityPDA,
+      true
+    );
+    console.log("Vaultpay authority ATA:", vaultpayAuthorityAta);
 
-    const tx = await vaultpayProgram.methods
+    const ix = await vaultpayProgram.methods
       .deposit(depositAmount)
       .accountsPartial({
         user: user.publicKey,
+        config: configPDA,
         tokenMint,
         yieldReserve: yieldReservePDA,
         vaultpayAuthority: vaultpayAuthorityPDA,
         yieldAccount: yieldAccountPDA,
-        userTokenAccount: userTokenAccount,
         yieldTokenAccount: yieldTokenAccount,
+        userTokenAccount: userTokenAccount,
         reserveTokenAccount: reserveTokenAccount,
         yieldProgram: mockYieldProgram.programId,
         tokenProgram: TOKEN_PROGRAM_ID,
         associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
         systemProgram: SystemProgram.programId,
       })
-      .signers([user])
-      .rpc();
+      .instruction();
 
-    console.log("User deposited into vault:", tx);
+    const txSignature = await buildTxConfirmOrLog(
+      user,
+      ix,
+      vaultpayProgram,
+      "deposit"
+    );
+
+    console.log("User deposited tokens with tx:", txSignature);
+
+    // Verify the deposit
+    const userAtaBalance = await getAccount(provider.connection, userTokenAccount);
+    const yieldTokenAccountBalance = await getAccount(provider.connection, yieldTokenAccount);
+
+    console.log("User token account balance:", userAtaBalance.amount);
+    console.log("Yield token account balance:", yieldTokenAccountBalance.amount);
   });
 
   xit("Initialize vendor", async () => {
