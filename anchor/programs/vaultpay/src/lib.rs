@@ -33,8 +33,8 @@ pub mod vaultpay {
         Ok(())
     }
 
-    pub fn init_vendor(ctx: Context<InitVendor>, seed: u64, is_whitelisted: bool) -> Result<()> {
-        ctx.accounts.init_vendor(seed, is_whitelisted, &ctx.bumps)?;
+    pub fn init_vendor(ctx: Context<InitVendor>, seed: u64) -> Result<()> {
+        ctx.accounts.init_vendor(seed, &ctx.bumps)?;
         Ok(())
     }
 

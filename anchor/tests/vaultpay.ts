@@ -40,6 +40,7 @@ describe("vaultpay", () => {
   let authorityTokenAccount: PublicKey;
   let userTokenAccount: PublicKey;
   let vendorTokenAccount: PublicKey;
+  let vendorPdaAta: PublicKey;
   let treasuryTokenAccount: PublicKey;
 
   let yieldReservePDA: PublicKey;
@@ -353,28 +354,65 @@ describe("vaultpay", () => {
     console.log("Yield token account balance:", yieldTokenAccountBalance.amount);
   });
 
-  xit("Initialize vendor", async () => {
+  it("Initialize vendor", async () => {
     // Derive vendor PDA
     [vendorPDA, vendorBump] = await PublicKey.findProgramAddress(
       [Buffer.from("vendor"), configPDA.toBuffer(), vendorAuthority.publicKey.toBuffer()],
       vaultpayProgram.programId
     );
+    // Get the vendor's associated token account
+    vendorPdaAta = await getAssociatedTokenAddress(
+      tokenMint,
+      vendorPDA,
+      true
+    );
+
+    const printer = {
+      vendorSigner: vendorAuthority.publicKey,
+      tokenMint,
+      config: configPDA,
+      vendor: vendorPDA,
+      vendorTokenAccount: vendorPdaAta,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
+      systemProgram: SystemProgram.programId,
+    };
+
+    console.log(printer);
 
     const tx = await vaultpayProgram.methods
-      .initVendor(new BN(12345), true) // seed and is_whitelisted
+      .initVendor(new BN(12345)) // seed and is_whitelisted
       .accountsPartial({
-        vendorAuthority: vendorAuthority.publicKey,
-        supportedToken: tokenMint,
+        vendorSigner: vendorAuthority.publicKey,
+        tokenMint,
         config: configPDA,
         vendor: vendorPDA,
-        vendorTokenAccount: vendorTokenAccount,
+        vendorTokenAccount: vendorPdaAta,
         tokenProgram: TOKEN_PROGRAM_ID,
         associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
         systemProgram: SystemProgram.programId,
       })
       .signers([vendorAuthority])
       .rpc();
+      
+    await new Promise(resolve => setTimeout(resolve, 2000));
 
+    // Fetch the transaction logs
+    const txDetails = await provider.connection.getTransaction(tx, {
+      maxSupportedTransactionVersion: 0,
+      commitment: "confirmed"
+    });
+
+
+    console.log(txDetails);
+    // if (txLogs && txLogs.meta && txLogs.meta.logMessages) {
+    //   console.log("Transaction logs:");
+    //   txLogs.meta.logMessages.forEach((log, index) => {
+    //     console.log(`Log ${index + 1}: ${log}`);
+    //   });
+    // } else {
+    //   console.log("No logs found for the transaction");
+    // }
     console.log("Vendor initialized:", tx);
   });
 
