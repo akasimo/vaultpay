@@ -79,18 +79,17 @@ impl<'info> InitUser<'info> {
         msg!("Yield Account PDA pubkey: {}", yield_account_pda);
         require!(self.yield_account.key() == yield_account_pda, VaultPayError::InvalidYieldAccount);
 
-        // msg!("Yield Reserve pubkey: {}", self.yield_reserve.key());
-        // let (_yield_reserve_pda, _yield_reserve_bump) = Pubkey::find_program_address(
-        //     &[b"yield_reserve", self.token_mint.key().as_ref()],
-        //     &mock_yield_source::ID, // Use the program ID of mock_yield_source
-        // );
-        // msg!("Yeild Reserve PDA pubkey: {}", _yield_reserve_pda);
-        // require!(self.yield_reserve.key() == _yield_reserve_pda, VaultPayError::InvalidYieldReserve);
+        msg!("Yield Reserve pubkey: {}", self.yield_reserve.key());
+        let (_yield_reserve_pda, _yield_reserve_bump) = Pubkey::find_program_address(
+            &[b"yield_reserve", self.token_mint.key().as_ref()],
+            &mock_yield_source::ID, // Use the program ID of mock_yield_source
+        );
+        msg!("Yeild Reserve PDA pubkey: {}", _yield_reserve_pda);
+        require!(self.yield_reserve.key() == _yield_reserve_pda, VaultPayError::InvalidYieldReserve);
         
         let cpi_program = self.yield_program.to_account_info();
         let cpi_accounts = OpenVault {
             user: self.vaultpay_authority.to_account_info(),
-            // authority: self.vaultpay_authority.to_account_info(),
             token_mint: self.token_mint.to_account_info(),
             yield_reserve: self.yield_reserve.to_account_info(),
             yield_account: self.yield_account.to_account_info(),
