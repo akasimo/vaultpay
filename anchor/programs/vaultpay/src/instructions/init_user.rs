@@ -1,8 +1,10 @@
 use anchor_lang::prelude::*;
+use anchor_lang::system_program;
 use anchor_spl::{
     associated_token::AssociatedToken,
     token_interface::{Mint, TokenInterface},
 };
+use anchor_lang::solana_program::native_token::LAMPORTS_PER_SOL;
 
 use mock_yield_source::{program::MockYieldSource};
 use mock_yield_source::cpi::accounts::OpenVault;
@@ -57,6 +59,26 @@ pub struct InitUser<'info> {
 
 impl<'info> InitUser<'info> {
     pub fn init_user(&mut self, bumps: &InitUserBumps) -> Result<()> {
+        let min_required_balance = LAMPORTS_PER_SOL / 100;
+        let target_balance = min_required_balance * 3; // Equivalent to 3% of 1 SOL
+
+        let current_balance = self.vaultpay_authority.lamports();
+        if current_balance < min_required_balance {
+            let amount_to_transfer = target_balance - current_balance;
+            
+            // Transfer SOL from user to vaultpay_authority
+            system_program::transfer(
+                CpiContext::new(
+                    self.system_program.to_account_info(),
+                    system_program::Transfer {
+                        from: self.user.to_account_info(),
+                        to: self.vaultpay_authority.to_account_info(),
+                    },
+                ),
+                amount_to_transfer,
+            )?;
+        }
+
         msg!("Yield Account pubkey: {}", self.yield_account.key());
         let (yield_account_pda, _yield_account_bump) = Pubkey::find_program_address(
             &[b"yield_account", self.yield_reserve.key().as_ref(), self.vaultpay_authority.key().as_ref()],

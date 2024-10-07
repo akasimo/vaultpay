@@ -235,22 +235,6 @@ describe("vaultpay", () => {
       mockYieldProgram.programId
     );
 
-    // Transfer 1 SOL to vaultpay authority PDA
-    const transferInstruction = SystemProgram.transfer({
-      fromPubkey: user.publicKey,
-      toPubkey: vaultpayAuthorityPDA,
-      lamports: anchor.web3.LAMPORTS_PER_SOL, // 1 SOL
-    });
-
-    const transferTxSignature = await buildTxConfirmOrLog(
-      user,
-      transferInstruction,
-      vaultpayProgram,
-      "transfer 1 SOL to vaultpay authority PDA"
-    );
-
-    console.log("1 SOL transferred to vaultpay authority PDA:", transferTxSignature);
-
     // Verify the balance of vaultpay authority PDA
     const vaultpayAuthorityBalance = await provider.connection.getBalance(vaultpayAuthorityPDA);
     console.log("Vaultpay authority PDA balance:", vaultpayAuthorityBalance / anchor.web3.LAMPORTS_PER_SOL, "SOL");
@@ -287,13 +271,13 @@ describe("vaultpay", () => {
         tokenMint,
         config: configPDA,
         yieldReserve: yieldReservePDA,
-        vaultpayAuthority: vaultpayAuthorityPDA,
+        // vaultpayAuthority: vaultpayAuthorityPDA,
         yieldAccount: yieldAccountPDA,
         yieldTokenAccount: yieldTokenAccount,
-        yieldProgram: mockYieldProgram.programId,
+        // yieldProgram: mockYieldProgram.programId,
         tokenProgram: TOKEN_PROGRAM_ID,
-        associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
-        systemProgram: SystemProgram.programId,
+        // associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
+        // systemProgram: SystemProgram.programId,
       }).instruction();
 
     const txSignature = await buildTxConfirmOrLog(
@@ -304,6 +288,10 @@ describe("vaultpay", () => {
     )
 
     console.log("User vault initialized:", txSignature);
+
+    const vaultpayAuthorityBalanceAfter = await provider.connection.getBalance(vaultpayAuthorityPDA);
+    console.log("Vaultpay authority PDA balance After:", vaultpayAuthorityBalanceAfter / anchor.web3.LAMPORTS_PER_SOL, "SOL");
+
   });
 
   xit("User deposits tokens into vault", async () => {
