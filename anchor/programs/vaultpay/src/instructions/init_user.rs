@@ -1,14 +1,12 @@
 use anchor_lang::prelude::*;
 use anchor_spl::{
     associated_token::AssociatedToken,
-    token_interface::{Mint, TokenAccount, TokenInterface},
+    token_interface::{Mint, TokenInterface},
 };
 
 use mock_yield_source::{program::MockYieldSource};
 use mock_yield_source::cpi::accounts::OpenVault;
-use mock_yield_source::states::YieldReserve;
 use crate::states::Config;
-
 use crate::errors::VaultPayError;
 
 #[derive(Accounts)]
@@ -33,30 +31,19 @@ pub struct InitUser<'info> {
     /// CHECK: This is a PDA used as a signer
     pub vaultpay_authority: UncheckedAccount<'info>,
     
-    /// CHECK: cant check, because it ll be constrained with lending platforms programid. this is the account in mocksource
+    /// CHECK: directing to yield platform
     #[account(
         mut
     )]
     pub yield_account: UncheckedAccount<'info>,
 
-    // #[account(
-    //     // seeds = [b"yield_reserve", token_mint.key().as_ref()],
-    //     // bump = yield_reserve.bump
-    // )]
-    // pub yield_reserve: Account<'info, YieldReserve>,
-    /// CHECK: asd
+    /// CHECK: directing to yield platform
     #[account(
         mut
     )]
     pub yield_reserve: UncheckedAccount<'info>,
     
-    // #[account(
-    //     associated_token::mint = token_mint,
-    //     associated_token::authority = yield_account
-    // )]
-    // pub yield_token_account: InterfaceAccount<'info, TokenAccount>,
-
-    /// CHECK:
+    /// CHECK: directing to yield platform
     #[account(
         mut
     )]
