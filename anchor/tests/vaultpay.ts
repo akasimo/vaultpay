@@ -416,9 +416,9 @@ describe("vaultpay", () => {
     console.log("Vendor initialized:", tx);
   });
 
-  xit("Initialize subscription", async () => {
+  it("Initialize subscription", async () => {
     // Derive subscription PDA
-    [subscriptionPDA, subscriptionBump] = await PublicKey.findProgramAddress(
+    [subscriptionPDA, subscriptionBump] = await PublicKey.findProgramAddressSync(
       [Buffer.from("subscription"), vendorPDA.toBuffer(), user.publicKey.toBuffer()],
       vaultpayProgram.programId
     );
@@ -436,10 +436,9 @@ describe("vaultpay", () => {
       )
       .accountsPartial({
         user: user.publicKey,
-        supportedToken: tokenMint,
+        tokenMint,
         config: configPDA,
         vendor: vendorPDA,
-        vendorAuthority: vendorAuthority.publicKey,
         subscription: subscriptionPDA,
         systemProgram: SystemProgram.programId,
       })

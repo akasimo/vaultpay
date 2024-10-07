@@ -1,6 +1,6 @@
 // instructions/cancel_subscription.rs
 use anchor_lang::prelude::*;
-use crate::states::Subscription;
+use crate::states::{Subscription, SubscriptionStatus};
 
 #[derive(Accounts)]
 pub struct CancelSubscription<'info> {
@@ -21,10 +21,10 @@ pub struct CancelSubscription<'info> {
 impl<'info> CancelSubscription<'info> {
     pub fn cancel_subscription(&mut self) -> Result<()> {
         require!(
-            self.subscription.status == 0,
+            self.subscription.status == SubscriptionStatus::Active,
             crate::errors::VaultPayError::SubscriptionNotActive
         );
-        self.subscription.status = 1; // Canceled
+        self.subscription.status = SubscriptionStatus::Cancelled;
         Ok(())
     }
 }

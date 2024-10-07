@@ -127,11 +127,11 @@ export async function buildTxConfirmOrLog(signer:anchor.web3.Keypair, ix: anchor
     
     if (txDetails?.meta?.err) {
         console.log(txDetails);
-        const logs = txDetails?.meta?.logMessages || null;
+        // const logs = txDetails?.meta?.logMessages || null;
 
-        if (logs) {
-            console.log(logs);
-        }
+        // if (logs) {
+        //     console.log(logs);
+        // }
         throw new Error(`Transaction failed: ${JSON.stringify(txDetails.meta.err)}`);
     }
     

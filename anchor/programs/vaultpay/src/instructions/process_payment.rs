@@ -2,8 +2,8 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token_interface::{Mint, TokenAccount, TokenInterface, transfer_checked, TransferChecked};
 
-use crate::states::{Config, Subscription, Vendor};
-use mock_yield_source::states::{YieldReserve, YieldAccount};
+use crate::states::{Config, Subscription, Vendor, SubscriptionStatus};
+use mock_yield_source::states::YieldReserve;
 
 #[derive(Accounts)]
 pub struct ProcessPayment<'info> {
@@ -81,7 +81,7 @@ pub struct ProcessPayment<'info> {
 impl<'info> ProcessPayment<'info> {
     pub fn process_payment(&mut self, bumps: &ProcessPaymentBumps) -> Result<()> {
         // Ensure subscription is active
-        if self.subscription.status != 0 {
+        if self.subscription.status != SubscriptionStatus::Active {
             return Err(error!(crate::errors::VaultPayError::SubscriptionNotActive));
         }
 
@@ -140,7 +140,7 @@ impl<'info> ProcessPayment<'info> {
         self.subscription.payments_made += 1;
 
         if self.subscription.payments_made >= self.subscription.number_of_payments {
-            self.subscription.status = 2; // Completed
+            self.subscription.status = SubscriptionStatus::Completed;
         }
 
         Ok(())

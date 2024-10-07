@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use crate::states::{Subscription, Config, Vendor};
+use crate::states::{Subscription, SubscriptionStatus, Config, Vendor};
 use anchor_spl::{
     token_interface::{Mint},
 };
@@ -8,23 +8,19 @@ use anchor_spl::{
 pub struct InitSubscription<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
-
-    pub supported_token: Box<InterfaceAccount<'info, Mint>>,
+    pub token_mint: Box<InterfaceAccount<'info, Mint>>,
 
     #[account(
-        seeds = [b"config", supported_token.key().as_ref(), config.authority.key().as_ref()],
+        seeds = [b"config", token_mint.key().as_ref(), config.authority.key().as_ref()],
         bump = config.bump,
     )]
     pub config: Account<'info, Config>,
 
     #[account(
-        seeds = [b"vendor", config.key().as_ref(), vendor_authority.key().as_ref()],
+        seeds = [b"vendor", config.key().as_ref(), vendor.authority.key().as_ref()],
         bump = vendor.bump,
     )]
     pub vendor: Account<'info, Vendor>,
-
-    /// CHECK: Vendor authority public key
-    pub vendor_authority: UncheckedAccount<'info>,
 
     #[account(
         init,
@@ -48,15 +44,14 @@ impl<'info> InitSubscription<'info> {
         bumps: &InitSubscriptionBumps,
     ) -> Result<()> {
         self.subscription.set_inner(Subscription {
-            authority: self.user.key(),
-            vendor: self.vendor.key(),
             user: self.user.key(),
+            vendor: self.vendor.key(),
             seed,
+            start_time,
             amount_per_payment,
             number_of_payments,
             payments_made: 0,
-            start_time,
-            status: 0, // Active
+            status: SubscriptionStatus::Active,
             locked: false,
             bump: bumps.subscription,
         });
