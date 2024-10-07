@@ -448,17 +448,17 @@ describe("vaultpay", () => {
     console.log("Subscription initialized:", tx);
   });
 
-  xit("Process payment", async () => {
-    const tx = await vaultpayProgram.methods
+  it("Process payment", async () => {
+    const ix = await vaultpayProgram.methods
       .processPayment()
       .accountsPartial({
-        payer: user.publicKey,
-        supportedToken: tokenMint,
+        vendorSigner: vendorAuthority.publicKey,
+        tokenMint,
         config: configPDA,
         subscription: subscriptionPDA,
         vendor: vendorPDA,
-        vendorAuthority: vendorAuthority.publicKey,
-        user: user.publicKey,
+        // vendorAuthority: vendorAuthority.publicKey,
+        // user: user.publicKey,
         vaultpayAuthority: vaultpayAuthorityPDA,
         yieldReserve: yieldReservePDA,
         yieldAccount: yieldAccountPDA,
@@ -467,11 +467,28 @@ describe("vaultpay", () => {
         treasuryTokenAccount: treasuryTokenAccount,
         tokenProgram: TOKEN_PROGRAM_ID,
         systemProgram: SystemProgram.programId,
-      })
-      .signers([user])
-      .rpc();
+      }).instruction();
+    
+    const txSignature = await buildTxConfirmOrLog(
+      vendorAuthority,
+      ix,
+      vaultpayProgram,
+      "process payment"
+    );
 
-    console.log("Payment processed:", tx);
+    console.log("Payment processed:", txSignature);
+
+    // Print treasury balance
+    const treasuryBalance = await getAccount(provider.connection, treasuryTokenAccount);
+    console.log("Treasury balance:", treasuryBalance.amount.toString());
+
+    // Print vendor PDA ATA balance
+    const vendorPdaAtaBalance = await getAccount(provider.connection, vendorPdaAta);
+    console.log("Vendor PDA ATA balance:", vendorPdaAtaBalance.amount.toString());
+    
+    // Print vendor authority ATA balance
+    const vendorAuthorityAtaBalance = await getAccount(provider.connection, vendorTokenAccount);
+    console.log("Vendor Authority ATA balance:", vendorAuthorityAtaBalance.amount.toString());
 
     // Fetch subscription account and assert payments made increased
     const subscriptionAccount = await vaultpayProgram.account.subscription.fetch(subscriptionPDA);
@@ -493,7 +510,7 @@ describe("vaultpay", () => {
 
     // Fetch subscription account and assert status is canceled
     const subscriptionAccount = await vaultpayProgram.account.subscription.fetch(subscriptionPDA);
-    assert.equal(subscriptionAccount.status, 1, "Subscription status should be canceled (1)");
+    assert.equal(subscriptionAccount.status.toString(), "cancelled", "Subscription status should be cancelled");
   });
 
   xit("Withdraw funds from vault", async () => {

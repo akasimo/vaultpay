@@ -10,4 +10,16 @@ pub enum VaultPayError {
 
     #[msg("Invalid Yield Reserve")]
     InvalidYieldReserve,
+
+    #[msg("Invalid Vendor")]
+    InvalidVendor,
+
+    #[msg("Math Underflow")]
+    MathUnderflow,
+
+    #[msg("Math Overflow")]
+    MathOverflow,
+
+    #[msg("Invalid Vault Pay Authority")]
+    InvalidVaultPayAuthority,
 }

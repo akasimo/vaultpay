@@ -6,7 +6,7 @@ use anchor_spl::{
 
 use mock_yield_source::program::MockYieldSource;
 use mock_yield_source::cpi::accounts::Withdraw as YieldSourceWithdraw;
-use mock_yield_source::states::{YieldReserve, YieldAccount};
+use mock_yield_source::states::YieldReserve;
 
 #[derive(Accounts)]
 pub struct Withdraw<'info> {
@@ -63,7 +63,7 @@ impl<'info> Withdraw<'info> {
         let cpi_accounts = YieldSourceWithdraw {
             user: self.vaultpay_authority.to_account_info(),
             token_mint: self.token_mint.to_account_info(),
-            authority: self.vaultpay_authority.to_account_info(),
+            // authority: self.vaultpay_authority.to_account_info(),
             user_token_account: self.user_token_account.to_account_info(),
             yield_reserve: self.yield_reserve.to_account_info(),
             yield_account: self.yield_account.to_account_info(),
