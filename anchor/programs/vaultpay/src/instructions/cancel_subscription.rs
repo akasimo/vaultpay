@@ -9,6 +9,7 @@ pub struct CancelSubscription<'info> {
 
     #[account(
         mut,
+        close = user,
         seeds = [b"subscription", subscription.vendor.key().as_ref(), user.key().as_ref()],
         bump = subscription.bump,
         has_one = user,
