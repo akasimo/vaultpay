@@ -519,19 +519,24 @@ describe("vaultpay", () => {
     // assert.equal(subscriptionAccount.status.toString(), "cancelled", "Subscription status should be cancelled");
   });
 
-  xit("Withdraw funds from vault", async () => {
+  it("Withdraw funds from vault", async () => {
     const withdrawAmount = new BN(100_000_000); // Withdraw 100 tokens
 
+    // Get user ATA balance before withdrawal
+    const userAtaBalanceBefore = await getAccount(provider.connection, userTokenAccount);
+    console.log("User ATA balance before withdrawal:", userAtaBalanceBefore.amount.toString());
+    
     const tx = await vaultpayProgram.methods
       .withdraw(withdrawAmount)
       .accountsPartial({
         user: user.publicKey,
+        config: configPDA,
         tokenMint,
         yieldReserve: yieldReservePDA,
         vaultpayAuthority: vaultpayAuthorityPDA,
         yieldAccount: yieldAccountPDA,
-        userTokenAccount: userTokenAccount,
         yieldTokenAccount: yieldTokenAccount,
+        userTokenAccount: userTokenAccount,
         reserveTokenAccount: reserveTokenAccount,
         yieldProgram: mockYieldProgram.programId,
         tokenProgram: TOKEN_PROGRAM_ID,
@@ -542,6 +547,10 @@ describe("vaultpay", () => {
       .rpc();
 
     console.log("User withdrew from vault:", tx);
+
+    // Get user ATA balance after withdrawal
+    const userAtaBalanceAfter = await getAccount(provider.connection, userTokenAccount);
+    console.log("User ATA balance after withdrawal:", userAtaBalanceAfter.amount.toString());
   });
 
   xit("Claim treasury funds", async () => {
