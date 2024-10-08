@@ -10,8 +10,12 @@ const Vendor: NextPage = () => {
       <NavBar />
       <main className={styles.main}>
         <h2>Vendor Dashboard</h2>
-        <OfferForm />
-        <SubscriptionList />
+        <div className={styles.section}>
+          <OfferForm />
+        </div>
+        <div className={styles.section}>
+          <SubscriptionList />
+        </div>
       </main>
     </>
   );

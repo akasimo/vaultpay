@@ -3,9 +3,9 @@ import styles from './VendorSelection.module.css';
 const VendorSelection = () => {
   // Mock vendor data
   const vendors = [
-    { id: 1, name: 'Vendor A', description: 'Premium services' },
-    { id: 2, name: 'Vendor B', description: 'Standard services' },
-    { id: 3, name: 'Vendor C', description: 'Basic services' },
+    { id: 1, name: 'Vendor A', description: 'Premium crypto services' },
+    { id: 2, name: 'Vendor B', description: 'Standard crypto services' },
+    { id: 3, name: 'Vendor C', description: 'Basic crypto services' },
   ];
 
   return (

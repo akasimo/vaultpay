@@ -2,23 +2,26 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem;
-  background-color: #1f2937;
+  padding: 1rem 2rem;
+  background-color: #1e293b; /* Darker shade for a modern look */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .logo {
   color: #fff;
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-weight: bold;
+  letter-spacing: 1.5px;
 }
 
 .links a {
-  margin-left: 1rem;
-  color: #fff;
+  margin-left: 1.5rem;
+  color: #e2e8f0;
   text-decoration: none;
-  font-size: 1rem;
+  font-size: 1.1rem;
+  transition: color 0.3s ease;
 }
 
 .links a:hover {
-  text-decoration: underline;
+  color: #3b82f6; /* Accent color on hover */
 }
