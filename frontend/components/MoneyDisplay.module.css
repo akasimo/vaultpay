@@ -1,0 +1,27 @@
+.container {
+  background-color: #f9fafb;
+  padding: 1.5rem;
+  border-radius: 8px;
+}
+
+.balances {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 1rem;
+}
+
+.balance {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.balance span:first-child {
+  font-weight: bold;
+  color: #374151;
+}
+
+.balance span:last-child {
+  font-size: 1.2rem;
+  color: #10b981;
+}

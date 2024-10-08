@@ -1,0 +1,31 @@
+.container {
+  background-color: #f3f4f6;
+  padding: 1.5rem;
+  border-radius: 8px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  margin-top: 1rem;
+}
+
+.form input {
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.form button {
+  padding: 0.5rem;
+  background-color: #ec4899;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.form button:hover {
+  background-color: #db2777;
+}
