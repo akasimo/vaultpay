@@ -144,7 +144,7 @@ describe("vaultpay", () => {
       systemProgram: SystemProgram.programId,
     };
 
-    console.log(printer);
+    // console.log(printer);
 
     [yieldReservePDA, yieldReserveBump] =
       await PublicKey.findProgramAddressSync(
@@ -264,7 +264,7 @@ describe("vaultpay", () => {
       systemProgram: SystemProgram.programId,
     };
 
-    console.log(printer);
+    // console.log(printer);
 
     const ix = await vaultpayProgram.methods
       .initUser()
@@ -316,7 +316,7 @@ describe("vaultpay", () => {
       vaultpayAuthorityPDA,
       true
     );
-    console.log("Vaultpay authority ATA:", vaultpayAuthorityAta);
+    // console.log("Vaultpay authority ATA:", vaultpayAuthorityAta);
 
     const ix = await vaultpayProgram.methods
       .deposit(depositAmount)
@@ -378,7 +378,7 @@ describe("vaultpay", () => {
       systemProgram: SystemProgram.programId,
     };
 
-    console.log(printer);
+    // console.log(printer);
 
     const tx = await vaultpayProgram.methods
       .initVendor(new BN(12345)) // seed and is_whitelisted
@@ -404,7 +404,7 @@ describe("vaultpay", () => {
     });
 
 
-    console.log(txDetails);
+    // console.log(txDetails);
     // if (txLogs && txLogs.meta && txLogs.meta.logMessages) {
     //   console.log("Transaction logs:");
     //   txLogs.meta.logMessages.forEach((log, index) => {
