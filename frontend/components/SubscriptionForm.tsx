@@ -15,17 +15,30 @@ const SubscriptionForm = () => {
     setDuration('');
   };
 
+  // Hardcoded list of vendors
+  const vendorOptions = [
+    { value: '', label: 'Select Vendor' },
+    { value: 'Helius', label: 'Helius Rpc Service' },
+    { value: 'Amazon', label: 'Amazon Prime' },
+    { value: 'Nansen Pro', label: 'Nansen Pro Analytics' },
+  ];
+
   return (
     <section className={styles.container}>
       <h3>Add Subscription</h3>
       <form onSubmit={handleSubscription} className={styles.form}>
-        <input
-          type="text"
-          placeholder="Vendor Name"
+        <select
           value={vendor}
           onChange={(e) => setVendor(e.target.value)}
           required
-        />
+          className={styles.select}
+        >
+          {vendorOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
         <input
           type="number"
           placeholder="Amount in USD"

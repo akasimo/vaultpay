@@ -23,5 +23,5 @@
 }
 
 .links a:hover {
-  color: #3b82f6; /* Accent color on hover */
+  color: var(--accent); /* Green accent on hover */
 }

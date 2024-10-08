@@ -10,8 +10,12 @@ const MoneyDisplay = () => {
           <span>$1,000.00</span>
         </div>
         <div className={styles.balance}>
-          <span>Compounded:</span>
-          <span>$1,050.00</span>
+          <span>Current Value:</span>
+          <span>$1,023.37</span>
+        </div>
+        <div className={styles.balance}>
+          <span>Current Yield:</span>
+          <span>7.3%</span>
         </div>
       </div>
     </section>

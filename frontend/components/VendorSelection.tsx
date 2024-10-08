@@ -3,9 +3,9 @@ import styles from './VendorSelection.module.css';
 const VendorSelection = () => {
   // Mock vendor data
   const vendors = [
-    { id: 1, name: 'Vendor A', description: 'Premium crypto services' },
-    { id: 2, name: 'Vendor B', description: 'Standard crypto services' },
-    { id: 3, name: 'Vendor C', description: 'Basic crypto services' },
+    { id: 1, name: 'Helius', description: 'Helius Rpc Service' },
+    { id: 2, name: 'Amazon', description: 'Amazon Prime' },
+    { id: 3, name: 'Nansen Pro', description: 'Nansen Pro Analytics' },
   ];
 
   return (

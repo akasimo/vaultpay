@@ -1,8 +1,8 @@
 .container {
-  background-color: #ffffff;
+  background-color: var(--card-background);
   padding: 2rem;
   border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--tw-shadow-card);
 }
 
 .balances {
@@ -19,10 +19,10 @@
 
 .balance span:first-child {
   font-weight: 600;
-  color: #1e293b;
+  color: var(--foreground);
 }
 
 .balance span:last-child {
   font-size: 1.5rem;
-  color: #10b981;
+  color: var(--accent);
 }
