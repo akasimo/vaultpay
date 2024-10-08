@@ -210,6 +210,7 @@ describe("vaultpay", () => {
         owner: authority.publicKey,
         supportedToken: tokenMint,
         treasury: treasuryTokenAccount,
+        // treasuryTokenAccount: treasuryTokenAccount,
         config: configPDA,
         yieldProgram: mockYieldProgram.programId,
         tokenProgram: TOKEN_PROGRAM_ID,
@@ -553,7 +554,7 @@ describe("vaultpay", () => {
     console.log("User ATA balance after withdrawal:", userAtaBalanceAfter.amount.toString());
   });
 
-  xit("Claim treasury funds", async () => {
+  it("Claim treasury funds", async () => {
     // Create authority's token account if not exists
     const authorityAtaInfo = await getOrCreateAssociatedTokenAccount(
       provider.connection,
@@ -563,22 +564,29 @@ describe("vaultpay", () => {
     );
     authorityTokenAccount = authorityAtaInfo.address;
 
-    const claimAmount = new BN(10_000_000); // Claim 10 tokens
+    // Get authority ATA balance before claiming treasury
+    const authorityAtaBalanceBefore = await getAccount(provider.connection, authorityTokenAccount);
+    console.log("Authority ATA balance before claiming treasury:", authorityAtaBalanceBefore.amount.toString());
 
     const tx = await vaultpayProgram.methods
-      .claimTreasury(claimAmount)
+      .claimTreasury()
       .accountsPartial({
-        authority: authority.publicKey,
+        owner: authority.publicKey,
         supportedToken: tokenMint,
         config: configPDA,
         treasuryTokenAccount: treasuryTokenAccount,
-        authorityTokenAccount: authorityTokenAccount,
+        ownerTokenAccount: authorityTokenAccount,
         tokenProgram: TOKEN_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
         systemProgram: SystemProgram.programId,
       })
       .signers([authority])
       .rpc();
 
     console.log("Treasury funds claimed:", tx);
+
+    // Get authority ATA balance after claiming treasury
+    const authorityAtaBalanceAfter = await getAccount(provider.connection, authorityTokenAccount);
+    console.log("Authority ATA balance after claiming treasury:", authorityAtaBalanceAfter.amount.toString());
   });
 });

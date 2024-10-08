@@ -14,7 +14,7 @@ pub struct Initialize<'info> {
     pub supported_token: Box<InterfaceAccount<'info, Mint>>,
 
     #[account(
-        init,
+        init_if_needed,
         payer = owner,
         associated_token::mint = supported_token,
         associated_token::authority = config,
@@ -29,6 +29,14 @@ pub struct Initialize<'info> {
         bump,
     )]
     pub config: Account<'info, Config>,
+
+    // #[account(
+    //     init,
+    //     payer = owner,
+    //     associated_token::mint = supported_token,
+    //     associated_token::authority = config,
+    // )]
+    // pub treasury_token_account: InterfaceAccount<'info, TokenAccount>,
 
     pub yield_program: Program<'info, MockYieldSource>,
     pub token_program: Interface<'info, TokenInterface>,

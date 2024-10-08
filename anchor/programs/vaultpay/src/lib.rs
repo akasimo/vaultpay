@@ -75,8 +75,8 @@ pub mod vaultpay {
         Ok(())
     }
 
-    pub fn claim_treasury(ctx: Context<ClaimTreasury>, amount: u64) -> Result<()> {
-        ctx.accounts.claim_treasury(amount)?;
+    pub fn claim_treasury(ctx: Context<ClaimTreasury>) -> Result<()> {
+        ctx.accounts.claim_treasury()?;
         Ok(())
     }
 }

@@ -22,4 +22,7 @@ pub enum VaultPayError {
 
     #[msg("Invalid Vault Pay Authority")]
     InvalidVaultPayAuthority,
+
+    #[msg("Insufficient Funds")]
+    InsufficientFunds,
 }
